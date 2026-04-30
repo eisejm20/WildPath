@@ -11,12 +11,12 @@ const STATS = [
 const FEATURES = [
   {
     icon: '🗺️',
-    title: 'Discover & Book',
+    title: 'Discover & Book', link: '/discover',
     desc: 'Browse curated safari itineraries from verified operators across 14 African countries. Filter by destination, duration, budget, and experience type.',
   },
   {
     icon: '🤖',
-    title: 'AI Safari Planner',
+    title: 'AI Safari Planner', link: '/ai',
     desc: 'Our Safari AI builds a personalised itinerary based on your dates, budget, interests, and travel style. In minutes, not weeks.',
   },
   {
@@ -159,14 +159,26 @@ export default function Home() {
             gap: 24,
           }}>
             {FEATURES.map((f, i) => (
-              <div key={i} className="card" style={{ padding: 32 }}
-                onMouseEnter={e => e.currentTarget.style.borderBottom = '3px solid var(--sand)'}
-                onMouseLeave={e => e.currentTarget.style.borderBottom = 'none'}
-              >
-                <div style={{ fontSize: 36, marginBottom: 16 }}>{f.icon}</div>
-                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, marginBottom: 10, color: '#3D2B1F' }}>{f.title}</h3>
-                <p style={{ fontSize: 14, color: '#8B8070', lineHeight: 1.7 }}>{f.desc}</p>
-              </div>
+              f.link ? (
+                <Link to={f.link} key={i} className="card" style={{ padding: 32, display: 'block', textDecoration: 'none', cursor: 'pointer' }}
+                  onMouseEnter={e => e.currentTarget.style.borderBottom = '3px solid var(--sand)'}
+                  onMouseLeave={e => e.currentTarget.style.borderBottom = 'none'}
+                >
+                  <div style={{ fontSize: 36, marginBottom: 16 }}>{f.icon}</div>
+                  <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, marginBottom: 10, color: '#3D2B1F' }}>{f.title}</h3>
+                  <p style={{ fontSize: 14, color: '#8B8070', lineHeight: 1.7 }}>{f.desc}</p>
+                  <div style={{ marginTop: 12, fontSize: 13, color: 'var(--sand)', fontWeight: 500 }}>Try it →</div>
+                </Link>
+              ) : (
+                <div key={i} className="card" style={{ padding: 32 }}
+                  onMouseEnter={e => e.currentTarget.style.borderBottom = '3px solid var(--sand)'}
+                  onMouseLeave={e => e.currentTarget.style.borderBottom = 'none'}
+                >
+                  <div style={{ fontSize: 36, marginBottom: 16 }}>{f.icon}</div>
+                  <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 22, marginBottom: 10, color: '#3D2B1F' }}>{f.title}</h3>
+                  <p style={{ fontSize: 14, color: '#8B8070', lineHeight: 1.7 }}>{f.desc}</p>
+                </div>
+              )
             ))}
           </div>
         </div>
