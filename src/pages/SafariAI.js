@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
 
-// ── DATA ─────────────────────────────────────────────────────────────────────
-
 const EXPERIENCES = [
   { id: 'big5', label: 'Big Five Game Drive', icon: '🦁' },
   { id: 'gorilla', label: 'Gorilla Trekking', icon: '🦍' },
@@ -49,184 +47,85 @@ const GROUP_TYPES = [
 ]
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December','Flexible']
-
 const DURATIONS = [5,6,7,8,9,10,11,12,14,16,18,21]
-
 const BUDGET_RANGES = [
-  { id: 'u3k', label: 'Under $3,000', desc: 'per person' },
-  { id: '3_6k', label: '$3,000–$6,000', desc: 'per person' },
-  { id: '6_10k', label: '$6,000–$10,000', desc: 'per person' },
-  { id: '10_20k', label: '$10,000–$20,000', desc: 'per person' },
-  { id: 'o20k', label: '$20,000+', desc: 'per person' },
+  { id: 'u3k', label: 'Under $3,000' },
+  { id: '3_6k', label: '$3,000 - $6,000' },
+  { id: '6_10k', label: '$6,000 - $10,000' },
+  { id: '10_20k', label: '$10,000 - $20,000' },
+  { id: 'o20k', label: '$20,000+' },
 ]
 
-const STEPS = ['Experiences', 'Destinations', 'Trip Details', 'Your Itinerary']
+const STEPS = ['Experiences', 'Destinations', 'Trip Details']
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-
-function buildPrompt(form) {
-  const experiences = form.experiences.map(id => EXPERIENCES.find(e => e.id === id)?.label).join(', ')
-  const countries = form.countries.map(id => {
-    const c = COUNTRIES.find(c => c.id === id)
-    return c ? `${c.label} (${c.note})` : id
-  }).join(', ')
-  const style = TRAVEL_STYLES.find(s => s.id === form.travelStyle)?.label || form.travelStyle
-  const group = GROUP_TYPES.find(g => g.id === form.groupType)?.label || form.groupType
-  const budget = BUDGET_RANGES.find(b => b.id === form.budget)?.label || form.budget
-
-  return `Please create a personalised safari itinerary for me based on these details:
-
-EXPERIENCES I WANT: ${experiences}
-COUNTRIES / REGIONS: ${countries}
-DURATION: ${form.duration} days
-TRAVEL MONTH: ${form.month}
-BUDGET: ${budget} per person
-TRAVEL STYLE: ${style}
-GROUP TYPE: ${group} (${form.groupSize} people)
-${form.specificRequests ? `SPECIFIC REQUESTS / DREAM EXPERIENCES: ${form.specificRequests}` : ''}
-
-Important context: I understand Africa spans multiple countries and that combining destinations like Uganda gorilla trekking with Kenya's Maasai Mara in one trip is completely normal. Please plan the most logical routing between destinations, including internal flights where needed, and be specific about which parks, camps, and lodges you recommend. Include realistic travel times between locations.`
-}
-
-async function askClaude(messages) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2500,
-      system: `You are WildPath's Safari AI Assistant — the most knowledgeable safari planning expert in Africa. You have deep expertise across all major African safari destinations and understand that Africa is a continent of 54 countries, not a single destination.
-
-Key expertise:
-- Multi-country African itineraries and logical routing between them
-- Seasonal considerations for each park and destination  
-- Internal flight connections (Nairobi to Entebbe, Arusha to Kigali, etc.)
-- Specific lodge and camp recommendations at every price point
-- Wildlife seasonal calendars (calving, migration, gorilla habituation year-round, etc.)
-- Realistic travel times and logistics between destinations
-- Budget breakdowns including park fees, internal flights, accommodation
-
-When creating itineraries:
-1. Start with a brief overview explaining why this combination works and the best routing
-2. Provide a clear day-by-day breakdown with specific parks, camps/lodges, and activities
-3. Include internal flight connections with realistic durations
-4. Give a realistic budget breakdown including accommodation, internal flights, park fees, and transfers
-5. Note 2-3 specific wildlife highlights they can expect based on their travel month
-6. End with 2 practical tips specific to their trip
-
-Be specific — name actual parks, real lodges (Giraffe Manor, Bisate Lodge, Singita, andBeyond, etc.), and concrete experiences. Be warm and expert. Write in British English. Format clearly but conversationally — like a knowledgeable friend who happens to be Africa's best safari planner.
-
-You represent WildPath — Africa's premier safari network.`,
-      messages,
-    }),
-  })
-  if (!response.ok) throw new Error(`API ${response.status}`)
-  const data = await response.json()
-  return data.content?.find(b => b.type === 'text')?.text || ''
-}
-
-// ── COMPONENTS ───────────────────────────────────────────────────────────────
-
-function MultiSelect({ options, selected, onToggle, columns = 3 }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 10 }}>
-      {options.map(opt => {
-        const isSelected = selected.includes(opt.id)
-        return (
-          <button key={opt.id} onClick={() => onToggle(opt.id)} style={{
-            padding: '12px 14px', borderRadius: 'var(--radius-md)', textAlign: 'left',
-            border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s ease',
-            borderColor: isSelected ? 'var(--sand)' : 'var(--ivory-dark)',
-            background: isSelected ? 'var(--sand-pale)' : 'var(--white)',
-            fontFamily: 'var(--font-body)',
-          }}>
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{opt.icon || opt.flag}</div>
-            <div style={{ fontSize: 13, fontWeight: isSelected ? 600 : 400, color: 'var(--earth)' }}>{opt.label}</div>
-            {opt.note && <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 2 }}>{opt.note}</div>}
-            {opt.desc && <div style={{ fontSize: 11, color: 'var(--grey)', marginTop: 2 }}>{opt.desc}</div>}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function SingleSelect({ options, selected, onSelect, columns = 2 }) {
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 10 }}>
-      {options.map(opt => {
-        const isSelected = selected === opt.id
-        return (
-          <button key={opt.id} onClick={() => onSelect(opt.id)} style={{
-            padding: '14px 16px', borderRadius: 'var(--radius-md)', textAlign: 'left',
-            border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s ease',
-            borderColor: isSelected ? 'var(--sand)' : 'var(--ivory-dark)',
-            background: isSelected ? 'var(--sand-pale)' : 'var(--white)',
-            fontFamily: 'var(--font-body)',
-          }}>
-            <div style={{ fontSize: 22, marginBottom: 6 }}>{opt.icon}</div>
-            <div style={{ fontSize: 14, fontWeight: isSelected ? 600 : 400, color: 'var(--earth)' }}>{opt.label}</div>
-            {opt.desc && <div style={{ fontSize: 12, color: 'var(--grey)', marginTop: 2 }}>{opt.desc}</div>}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = "You are WildPath's Safari AI Assistant — the most knowledgeable safari planning expert in Africa. You understand that Africa is a continent of 54 countries, not a single destination, and multi-country itineraries are completely normal. When creating itineraries: 1) Start with a brief overview of why this combination works and the best routing 2) Provide a clear day-by-day breakdown with specific parks, camps/lodges, and activities 3) Include internal flight connections with realistic durations 4) Give a realistic budget breakdown 5) Note 2-3 specific wildlife highlights based on travel month 6) End with 2 practical tips. Be specific — name actual parks, real lodges (Giraffe Manor, Bisate Lodge, Singita, andBeyond, etc.). Write in British English. Be warm and expert, like a knowledgeable friend who is Africa's best safari planner. You represent WildPath — Africa's premier safari network."
 
 export default function SafariAI() {
   const [step, setStep] = useState(0)
-  const [form, setForm] = useState({
-    experiences: [],
-    countries: [],
-    duration: 10,
-    month: 'Flexible',
-    budget: '6_10k',
-    travelStyle: 'luxury',
-    groupType: 'couple',
-    groupSize: '2',
-    specificRequests: '',
-  })
+  const [experiences, setExperiences] = useState([])
+  const [countries, setCountries] = useState([])
+  const [duration, setDuration] = useState(10)
+  const [month, setMonth] = useState('Flexible')
+  const [budget, setBudget] = useState('6_10k')
+  const [travelStyle, setTravelStyle] = useState('luxury')
+  const [groupType, setGroupType] = useState('couple')
+  const [groupSize, setGroupSize] = useState('2')
+  const [specificRequests, setSpecificRequests] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
   const [followUp, setFollowUp] = useState('')
-  const messagesEndRef = useRef(null)
+  const [itineraryGenerated, setItineraryGenerated] = useState(false)
+  const bottomRef = useRef(null)
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
-  const toggle = (field, id) => {
-    setForm(prev => ({
-      ...prev,
-      [field]: prev[field].includes(id) ? prev[field].filter(x => x !== id) : [...prev[field], id]
-    }))
+  function toggleItem(list, setList, id) {
+    if (list.includes(id)) setList(list.filter(x => x !== id))
+    else setList([...list, id])
   }
 
-  const canProceed = () => {
-    if (step === 0) return form.experiences.length > 0
-    if (step === 1) return form.countries.length > 0
-    if (step === 2) return form.budget && form.travelStyle && form.groupType
-    return true
+  function buildPrompt() {
+    const expLabels = experiences.map(id => EXPERIENCES.find(e => e.id === id)).filter(Boolean).map(e => e.label).join(', ')
+    const countryLabels = countries.map(id => COUNTRIES.find(c => c.id === id)).filter(Boolean).map(c => c.label + ' (' + c.note + ')').join(', ')
+    const styleLabel = TRAVEL_STYLES.find(s => s.id === travelStyle) ? TRAVEL_STYLES.find(s => s.id === travelStyle).label : travelStyle
+    const groupLabel = GROUP_TYPES.find(g => g.id === groupType) ? GROUP_TYPES.find(g => g.id === groupType).label : groupType
+    const budgetLabel = BUDGET_RANGES.find(b => b.id === budget) ? BUDGET_RANGES.find(b => b.id === budget).label : budget
+
+    return 'Please create a personalised safari itinerary based on these details:\n\nEXPERIENCES: ' + expLabels + '\nCOUNTRIES: ' + countryLabels + '\nDURATION: ' + duration + ' days\nTRAVEL MONTH: ' + month + '\nBUDGET: ' + budgetLabel + ' per person\nTRAVEL STYLE: ' + styleLabel + '\nGROUP: ' + groupLabel + ' (' + groupSize + ' people)\n' + (specificRequests ? 'SPECIFIC REQUESTS: ' + specificRequests : '') + '\n\nImportant: I understand Africa spans multiple countries and combining destinations like Uganda gorilla trekking with Kenya safari in one trip is completely normal. Please plan logical routing between destinations including internal flights where needed.'
   }
 
-  const generateItinerary = async () => {
+  async function generateItinerary() {
     setStep(3)
+    setItineraryGenerated(false)
     setLoading(true)
-    const prompt = buildPrompt(form)
+    const prompt = buildPrompt()
     const newMessages = [{ role: 'user', content: prompt }]
+    setMessages(newMessages)
     try {
-      const reply = await askClaude(newMessages)
-      setMessages([...newMessages, { role: 'assistant', content: reply }])
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2500,
+          system: SYSTEM_PROMPT,
+          messages: newMessages,
+        }),
+      })
+      const data = await res.json()
+      const text = data.content && data.content[0] ? data.content[0].text : 'Sorry, something went wrong.'
+      const updated = [...newMessages, { role: 'assistant', content: text }]
+      setMessages(updated)
+      setItineraryGenerated(true)
     } catch (err) {
-      setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong — please try again.' }])
+      setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
     setLoading(false)
   }
 
-  const sendFollowUp = async () => {
+  async function sendFollowUp() {
     if (!followUp.trim() || loading) return
     const text = followUp.trim()
     setFollowUp('')
@@ -234,53 +133,69 @@ export default function SafariAI() {
     const newMessages = [...messages, { role: 'user', content: text }]
     setMessages(newMessages)
     try {
-      const reply = await askClaude(newMessages)
-      setMessages([...newMessages, { role: 'assistant', content: reply }])
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1500,
+          system: SYSTEM_PROMPT,
+          messages: newMessages,
+        }),
+      })
+      const data = await res.json()
+      const text2 = data.content && data.content[0] ? data.content[0].text : 'Sorry, something went wrong.'
+      setMessages([...newMessages, { role: 'assistant', content: text2 }])
     } catch (err) {
-      setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong — please try again.' }])
+      setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong.' }])
     }
     setLoading(false)
   }
 
-  const reset = () => {
+  function reset() {
     setStep(0)
+    setExperiences([])
+    setCountries([])
+    setDuration(10)
+    setMonth('Flexible')
+    setBudget('6_10k')
+    setTravelStyle('luxury')
+    setGroupType('couple')
+    setGroupSize('2')
+    setSpecificRequests('')
     setMessages([])
     setFollowUp('')
     setLoading(false)
-    setForm({ experiences: [], countries: [], duration: 10, month: 'Flexible', budget: '6_10k', travelStyle: 'luxury', groupType: 'couple', groupSize: '2', specificRequests: '' })
+    setItineraryGenerated(false)
   }
 
+  const btnStyle = (active) => ({
+    padding: '10px 14px', borderRadius: '8px', textAlign: 'left',
+    border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s ease',
+    borderColor: active ? '#C4915A' : '#F0E8DC',
+    background: active ? '#F5EBE0' : '#FFFFFF',
+    fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F',
+  })
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ivory)', paddingTop: 68 }}>
-
-      {/* Header */}
+    <div style={{ minHeight: '100vh', background: '#FAF6EF', paddingTop: 68 }}>
       <div style={{ background: 'linear-gradient(135deg, #1A1108, #3D2B1F)', padding: '48px 24px 40px', textAlign: 'center' }}>
-        <div className="section-label" style={{ color: '#E8B882', marginBottom: 12 }}>Powered by Claude AI</div>
-        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(32px, 5vw, 52px)', color: '#FAF6EF', marginBottom: 16, fontWeight: 300 }}>
-          Safari AI Planner
-        </h1>
-        <p style={{ fontSize: 16, color: 'rgba(250,246,239,0.7)', maxWidth: 560, margin: '0 auto', lineHeight: 1.7 }}>
-          Tell us what you want and we'll build a personalised, day-by-day African safari itinerary — including multi-country routing, lodge recommendations, and a full budget breakdown.
+        <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#E8B882', marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Powered by Claude AI</div>
+        <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(32px, 5vw, 52px)', color: '#FAF6EF', marginBottom: 16, fontWeight: 300 }}>Safari AI Planner</h1>
+        <p style={{ fontSize: 16, color: 'rgba(250,246,239,0.7)', maxWidth: 540, margin: '0 auto', lineHeight: 1.7, fontFamily: 'DM Sans, sans-serif' }}>
+          Tell us what you want and we will build a personalised, day-by-day African safari itinerary — including multi-country routing, lodge recommendations, and a full budget breakdown.
         </p>
-
-        {/* Step indicator */}
         {step < 3 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginTop: 32, maxWidth: 480, margin: '32px auto 0' }}>
-            {STEPS.slice(0, 3).map((s, i) => (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0, marginTop: 32, maxWidth: 400, margin: '32px auto 0' }}>
+            {STEPS.map((s, i) => (
               <React.Fragment key={i}>
                 <div style={{ textAlign: 'center', flex: 1 }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '50%', margin: '0 auto 6px',
-                    background: i <= step ? 'var(--sand)' : 'rgba(250,246,239,0.2)',
-                    color: i <= step ? '#1A1108' : 'rgba(250,246,239,0.4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 700, transition: 'all 0.3s',
-                  }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', margin: '0 auto 6px', background: i <= step ? '#C4915A' : 'rgba(250,246,239,0.15)', color: i <= step ? '#1A1108' : 'rgba(250,246,239,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
                     {i < step ? '✓' : i + 1}
                   </div>
-                  <div style={{ fontSize: 11, color: i <= step ? '#E8B882' : 'rgba(250,246,239,0.4)' }}>{s}</div>
+                  <div style={{ fontSize: 11, color: i <= step ? '#E8B882' : 'rgba(250,246,239,0.4)', fontFamily: 'DM Sans, sans-serif' }}>{s}</div>
                 </div>
-                {i < 2 && <div style={{ flex: 2, height: 2, background: i < step ? 'var(--sand)' : 'rgba(250,246,239,0.15)', marginBottom: 22, transition: 'background 0.3s' }} />}
+                {i < STEPS.length - 1 && <div style={{ flex: 2, height: 2, background: i < step ? '#C4915A' : 'rgba(250,246,239,0.15)', marginBottom: 22 }} />}
               </React.Fragment>
             ))}
           </div>
@@ -289,232 +204,208 @@ export default function SafariAI() {
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px 80px' }}>
 
-        {/* ── STEP 0: EXPERIENCES ── */}
         {step === 0 && (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
+          <div>
             <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 8 }}>What experiences do you want?</h2>
-            <p style={{ fontSize: 14, color: 'var(--grey)', marginBottom: 28 }}>Select everything that excites you — you can combine as many as you like across different countries.</p>
-            <MultiSelect options={EXPERIENCES} selected={form.experiences} onToggle={id => toggle('experiences', id)} columns={3} />
+            <p style={{ fontSize: 14, color: '#8B8070', marginBottom: 28, fontFamily: 'DM Sans, sans-serif' }}>Select everything that excites you — you can combine as many as you like across different countries.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+              {EXPERIENCES.map(exp => (
+                <button key={exp.id} onClick={() => toggleItem(experiences, setExperiences, exp.id)} style={btnStyle(experiences.includes(exp.id))}>
+                  <div style={{ fontSize: 22, marginBottom: 6 }}>{exp.icon}</div>
+                  <div style={{ fontSize: 13, fontWeight: experiences.includes(exp.id) ? 600 : 400 }}>{exp.label}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── STEP 1: DESTINATIONS ── */}
         {step === 1 && (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
+          <div>
             <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 8 }}>Which countries interest you?</h2>
-            <p style={{ fontSize: 14, color: 'var(--grey)', marginBottom: 28 }}>Select multiple — combining countries in one trip is completely normal in Africa. We'll plan the routing for you.</p>
-            <MultiSelect options={COUNTRIES} selected={form.countries} onToggle={id => toggle('countries', id)} columns={3} />
+            <p style={{ fontSize: 14, color: '#8B8070', marginBottom: 28, fontFamily: 'DM Sans, sans-serif' }}>Select multiple — combining countries in one trip is completely normal. We will plan the routing.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+              {COUNTRIES.map(c => (
+                <button key={c.id} onClick={() => toggleItem(countries, setCountries, c.id)} style={btnStyle(countries.includes(c.id))}>
+                  <div style={{ fontSize: 22, marginBottom: 6 }}>{c.flag}</div>
+                  <div style={{ fontSize: 13, fontWeight: countries.includes(c.id) ? 600 : 400 }}>{c.label}</div>
+                  <div style={{ fontSize: 11, color: '#8B8070', marginTop: 2 }}>{c.note}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── STEP 2: TRIP DETAILS ── */}
         {step === 2 && (
-          <div style={{ animation: 'fadeIn 0.3s ease', display: 'flex', flexDirection: 'column', gap: 36 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div>
-              <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 8 }}>Trip details</h2>
-              <p style={{ fontSize: 14, color: 'var(--grey)' }}>The more specific you are, the better your itinerary will be.</p>
+              <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 4 }}>Trip details</h2>
+              <p style={{ fontSize: 14, color: '#8B8070', fontFamily: 'DM Sans, sans-serif' }}>The more specific you are, the better your itinerary.</p>
             </div>
 
-            {/* Duration */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Duration</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Duration</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {DURATIONS.map(d => (
-                  <button key={d} onClick={() => setForm(p => ({ ...p, duration: d }))} style={{
-                    padding: '8px 16px', borderRadius: 'var(--radius-full)', fontSize: 14, cursor: 'pointer',
-                    border: '1.5px solid', transition: 'all 0.15s',
-                    borderColor: form.duration === d ? 'var(--sand)' : 'var(--ivory-dark)',
-                    background: form.duration === d ? 'var(--sand-pale)' : 'var(--white)',
-                    fontWeight: form.duration === d ? 600 : 400, color: 'var(--earth)',
-                    fontFamily: 'var(--font-body)',
-                  }}>
+                  <button key={d} onClick={() => setDuration(d)} style={{ padding: '8px 16px', borderRadius: '999px', fontSize: 13, cursor: 'pointer', border: '1.5px solid', borderColor: duration === d ? '#C4915A' : '#F0E8DC', background: duration === d ? '#F5EBE0' : '#FFFFFF', fontWeight: duration === d ? 600 : 400, color: '#3D2B1F', fontFamily: 'DM Sans, sans-serif' }}>
                     {d} days
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Month */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Travel Month</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travel Month</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {MONTHS.map(m => (
-                  <button key={m} onClick={() => setForm(p => ({ ...p, month: m }))} style={{
-                    padding: '8px 16px', borderRadius: 'var(--radius-full)', fontSize: 13, cursor: 'pointer',
-                    border: '1.5px solid', transition: 'all 0.15s',
-                    borderColor: form.month === m ? 'var(--sand)' : 'var(--ivory-dark)',
-                    background: form.month === m ? 'var(--sand-pale)' : 'var(--white)',
-                    fontWeight: form.month === m ? 600 : 400, color: 'var(--earth)',
-                    fontFamily: 'var(--font-body)',
-                  }}>
+                  <button key={m} onClick={() => setMonth(m)} style={{ padding: '8px 16px', borderRadius: '999px', fontSize: 13, cursor: 'pointer', border: '1.5px solid', borderColor: month === m ? '#C4915A' : '#F0E8DC', background: month === m ? '#F5EBE0' : '#FFFFFF', fontWeight: month === m ? 600 : 400, color: '#3D2B1F', fontFamily: 'DM Sans, sans-serif' }}>
                     {m}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Budget */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Budget Per Person</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Budget Per Person</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
                 {BUDGET_RANGES.map(b => (
-                  <button key={b.id} onClick={() => setForm(p => ({ ...p, budget: b.id }))} style={{
-                    padding: '14px 16px', borderRadius: 'var(--radius-md)', textAlign: 'left', cursor: 'pointer',
-                    border: '1.5px solid', transition: 'all 0.15s',
-                    borderColor: form.budget === b.id ? 'var(--sand)' : 'var(--ivory-dark)',
-                    background: form.budget === b.id ? 'var(--sand-pale)' : 'var(--white)',
-                    fontFamily: 'var(--font-body)',
-                  }}>
-                    <div style={{ fontSize: 14, fontWeight: form.budget === b.id ? 600 : 400, color: 'var(--earth)' }}>{b.label}</div>
-                    <div style={{ fontSize: 12, color: 'var(--grey)' }}>{b.desc}</div>
+                  <button key={b.id} onClick={() => setBudget(b.id)} style={{ padding: '12px 14px', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', border: '1.5px solid', borderColor: budget === b.id ? '#C4915A' : '#F0E8DC', background: budget === b.id ? '#F5EBE0' : '#FFFFFF', fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F' }}>
+                    <div style={{ fontSize: 13, fontWeight: budget === b.id ? 600 : 400 }}>{b.label}</div>
+                    <div style={{ fontSize: 11, color: '#8B8070' }}>per person</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Travel Style */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Travel Style</div>
-              <SingleSelect options={TRAVEL_STYLES} selected={form.travelStyle} onSelect={id => setForm(p => ({ ...p, travelStyle: id }))} columns={4} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travel Style</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                {TRAVEL_STYLES.map(s => (
+                  <button key={s.id} onClick={() => setTravelStyle(s.id)} style={{ padding: '14px 12px', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', border: '1.5px solid', borderColor: travelStyle === s.id ? '#C4915A' : '#F0E8DC', background: travelStyle === s.id ? '#F5EBE0' : '#FFFFFF', fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F' }}>
+                    <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
+                    <div style={{ fontSize: 13, fontWeight: travelStyle === s.id ? 600 : 400 }}>{s.label}</div>
+                    <div style={{ fontSize: 11, color: '#8B8070' }}>{s.desc}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Group Type */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Travelling As</div>
-              <SingleSelect options={GROUP_TYPES} selected={form.groupType} onSelect={id => setForm(p => ({ ...p, groupType: id }))} columns={4} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travelling As</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                {GROUP_TYPES.map(g => (
+                  <button key={g.id} onClick={() => setGroupType(g.id)} style={{ padding: '14px 12px', borderRadius: '8px', textAlign: 'center', cursor: 'pointer', border: '1.5px solid', borderColor: groupType === g.id ? '#C4915A' : '#F0E8DC', background: groupType === g.id ? '#F5EBE0' : '#FFFFFF', fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F' }}>
+                    <div style={{ fontSize: 24, marginBottom: 6 }}>{g.icon}</div>
+                    <div style={{ fontSize: 13, fontWeight: groupType === g.id ? 600 : 400 }}>{g.label}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Group Size */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Number of Travellers</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Number of Travellers</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {['1','2','3','4','5','6','7','8+'].map(n => (
-                  <button key={n} onClick={() => setForm(p => ({ ...p, groupSize: n }))} style={{
-                    width: 44, height: 44, borderRadius: 'var(--radius-md)', fontSize: 14, cursor: 'pointer',
-                    border: '1.5px solid', transition: 'all 0.15s',
-                    borderColor: form.groupSize === n ? 'var(--sand)' : 'var(--ivory-dark)',
-                    background: form.groupSize === n ? 'var(--sand-pale)' : 'var(--white)',
-                    fontWeight: form.groupSize === n ? 600 : 400, color: 'var(--earth)',
-                    fontFamily: 'var(--font-body)',
-                  }}>
+                  <button key={n} onClick={() => setGroupSize(n)} style={{ width: 44, height: 44, borderRadius: '8px', fontSize: 14, cursor: 'pointer', border: '1.5px solid', borderColor: groupSize === n ? '#C4915A' : '#F0E8DC', background: groupSize === n ? '#F5EBE0' : '#FFFFFF', fontWeight: groupSize === n ? 600 : 400, color: '#3D2B1F', fontFamily: 'DM Sans, sans-serif' }}>
                     {n}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Specific Requests */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Specific Requests or Dream Experiences</div>
-              <p style={{ fontSize: 13, color: 'var(--grey)', marginBottom: 12 }}>Any specific lodges, parks, or experiences you have in mind? (e.g. "I want to stay at Giraffe Manor" or "must include Victoria Falls")</p>
-              <textarea className="input-field" rows={3} value={form.specificRequests} onChange={e => setForm(p => ({ ...p, specificRequests: e.target.value }))} placeholder="e.g. I want to stay at Giraffe Manor in Nairobi and do a gorilla trek in Bwindi..." style={{ resize: 'vertical' }} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'DM Sans, sans-serif' }}>Specific Requests</div>
+              <p style={{ fontSize: 13, color: '#8B8070', marginBottom: 10, fontFamily: 'DM Sans, sans-serif' }}>Any specific lodges or experiences? e.g. "I want to stay at Giraffe Manor" or "must include Victoria Falls"</p>
+              <textarea value={specificRequests} onChange={e => setSpecificRequests(e.target.value)} rows={3} placeholder="e.g. I want to stay at Giraffe Manor in Nairobi and do a gorilla trek in Bwindi..." style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '1.5px solid #F0E8DC', fontSize: 14, fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F', resize: 'vertical', outline: 'none', background: '#FFFFFF' }} />
             </div>
           </div>
         )}
 
-        {/* ── STEP 3: ITINERARY ── */}
         {step === 3 && (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            {loading && messages.length <= 1 ? (
+          <div>
+            {loading && messages.length <= 1 && (
               <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                <div style={{ fontSize: 48, marginBottom: 24 }}>🌍</div>
+                <div style={{ fontSize: 56, marginBottom: 24 }}>🌍</div>
                 <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 12 }}>Building your itinerary...</h3>
-                <p style={{ fontSize: 14, color: 'var(--grey)' }}>Our AI is planning your perfect African safari.</p>
+                <p style={{ fontSize: 14, color: '#8B8070', fontFamily: 'DM Sans, sans-serif' }}>Our AI is planning your perfect African safari.</p>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
                   {[0,1,2].map(i => (
-                    <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--sand)', animation: 'bounce 1.2s infinite', animationDelay: `${i * 0.2}s` }} />
+                    <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: '#C4915A', animation: 'bounce 1.2s infinite', animationDelay: (i * 0.2) + 's' }} />
                   ))}
                 </div>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {/* Trip summary chips */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: '16px 20px', background: 'var(--sand-pale)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(196,145,90,0.3)' }}>
-                  <span className="tag">🗓️ {form.duration} days</span>
-                  <span className="tag">📅 {form.month}</span>
-                  <span className="tag">💰 {BUDGET_RANGES.find(b => b.id === form.budget)?.label}</span>
-                  <span className="tag">✨ {TRAVEL_STYLES.find(s => s.id === form.travelStyle)?.label}</span>
-                  <span className="tag">👥 {form.groupSize} {GROUP_TYPES.find(g => g.id === form.groupType)?.label}</span>
-                  {form.countries.map(id => <span key={id} className="tag">{COUNTRIES.find(c => c.id === id)?.flag} {COUNTRIES.find(c => c.id === id)?.label}</span>)}
-                </div>
+            )}
 
-                {/* Messages */}
-                {messages.filter(m => m.role === 'assistant').map((msg, i) => (
-                  <div key={i} className="card" style={{ padding: 32, fontSize: 15, lineHeight: 1.9, color: 'var(--earth)', whiteSpace: 'pre-wrap', animation: 'fadeIn 0.4s ease' }}>
-                    {msg.content}
-                  </div>
+            {messages.filter(m => m.role === 'assistant').map((msg, i) => (
+              <div key={i} style={{ background: '#FFFFFF', borderRadius: '16px', padding: 32, fontSize: 15, lineHeight: 1.9, color: '#3D2B1F', whiteSpace: 'pre-wrap', boxShadow: '0 2px 8px rgba(61,43,31,0.08)', marginBottom: 24 }}>
+                {msg.content}
+              </div>
+            ))}
+
+            {loading && messages.length > 1 && (
+              <div style={{ display: 'flex', gap: 8, padding: 20, background: '#FFFFFF', borderRadius: '12px', marginBottom: 24 }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: '#C4915A', animation: 'bounce 1.2s infinite', animationDelay: (i * 0.2) + 's' }} />
                 ))}
+              </div>
+            )}
 
-                {/* Loading follow-up */}
-                {loading && (
-                  <div style={{ display: 'flex', gap: 8, padding: 20, background: 'var(--white)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-sm)' }}>
-                    {[0,1,2].map(i => (
-                      <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--sand)', animation: 'bounce 1.2s infinite', animationDelay: `${i * 0.2}s` }} />
-                    ))}
-                  </div>
-                )}
+            <div ref={bottomRef} />
 
-                <div ref={messagesEndRef} />
-
-                {/* Follow-up questions */}
-                {!loading && (
-                  <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: 24, boxShadow: 'var(--shadow-sm)' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--earth-mid)', marginBottom: 12 }}>Refine your itinerary</div>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-                      {["Can we shorten it to fewer days?", "What if we add a beach extension?", "Can you suggest cheaper lodge alternatives?", "What's the best internal flight routing?"].map((q, i) => (
-                        <button key={i} onClick={() => { setFollowUp(q); }} style={{ padding: '6px 14px', fontSize: 12, borderRadius: 'var(--radius-full)', border: '1px solid var(--ivory-dark)', background: 'var(--ivory)', color: 'var(--earth)', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <input className="input-field" value={followUp} onChange={e => setFollowUp(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendFollowUp()} placeholder="Ask anything about your itinerary..." style={{ flex: 1 }} />
-                      <button onClick={sendFollowUp} disabled={!followUp.trim()} className="btn-primary" style={{ flexShrink: 0, opacity: followUp.trim() ? 1 : 0.5 }}>Ask →</button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', paddingTop: 8 }}>
-                  <button onClick={reset} className="btn-secondary">Plan a different safari</button>
-                  <a href="/operators/join" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    Book with a WildPath Operator →
-                  </a>
+            {itineraryGenerated && !loading && (
+              <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: 24, boxShadow: '0 2px 8px rgba(61,43,31,0.08)', marginBottom: 24 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#6B4C35', marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Refine your itinerary</div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                  {["Can we shorten it?", "Suggest cheaper lodges", "What are the internal flights?", "Add a beach extension"].map((q, i) => (
+                    <button key={i} onClick={() => setFollowUp(q)} style={{ padding: '6px 14px', fontSize: 12, borderRadius: '999px', border: '1px solid #F0E8DC', background: '#FAF6EF', color: '#3D2B1F', cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                      {q}
+                    </button>
+                  ))}
                 </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input value={followUp} onChange={e => setFollowUp(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') sendFollowUp() }} placeholder="Ask anything about your itinerary..." style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1.5px solid #F0E8DC', fontSize: 14, fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F', outline: 'none' }} />
+                  <button onClick={sendFollowUp} disabled={!followUp.trim()} style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #C4915A, #A87840)', color: '#FAF6EF', border: 'none', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', opacity: followUp.trim() ? 1 : 0.4 }}>
+                    Ask
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {itineraryGenerated && (
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button onClick={reset} style={{ padding: '12px 24px', background: 'transparent', color: '#3D2B1F', border: '1.5px solid #C4B8A8', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                  Plan a different safari
+                </button>
+                <a href="/discover" style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #C4915A, #A87840)', color: '#FAF6EF', border: 'none', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                  Find an Operator on WildPath
+                </a>
               </div>
             )}
           </div>
         )}
 
-        {/* ── NAVIGATION ── */}
         {step < 3 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--ivory-dark)' }}>
-            <button onClick={() => step > 0 ? setStep(s => s - 1) : null} className="btn-secondary" style={{ opacity: step === 0 ? 0 : 1, pointerEvents: step === 0 ? 'none' : 'auto' }}>
-              ← Back
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 40, paddingTop: 24, borderTop: '1px solid #F0E8DC' }}>
+            <button onClick={() => setStep(s => s - 1)} style={{ padding: '12px 24px', background: 'transparent', color: '#3D2B1F', border: '1.5px solid #C4B8A8', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', opacity: step === 0 ? 0 : 1, pointerEvents: step === 0 ? 'none' : 'auto' }}>
+              Back
             </button>
-            <div style={{ fontSize: 13, color: 'var(--grey)' }}>
-              {step === 0 && `${form.experiences.length} experience${form.experiences.length !== 1 ? 's' : ''} selected`}
-              {step === 1 && `${form.countries.length} countr${form.countries.length !== 1 ? 'ies' : 'y'} selected`}
+            <div style={{ fontSize: 13, color: '#8B8070', fontFamily: 'DM Sans, sans-serif' }}>
+              {step === 0 && experiences.length + ' selected'}
+              {step === 1 && countries.length + ' selected'}
             </div>
             {step < 2 ? (
-              <button onClick={() => setStep(s => s + 1)} className="btn-primary" disabled={!canProceed()} style={{ opacity: canProceed() ? 1 : 0.4 }}>
-                Continue →
+              <button onClick={() => setStep(s => s + 1)} disabled={step === 0 && experiences.length === 0 || step === 1 && countries.length === 0} style={{ padding: '12px 28px', background: 'linear-gradient(135deg, #C4915A, #A87840)', color: '#FAF6EF', border: 'none', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', opacity: (step === 0 && experiences.length === 0) || (step === 1 && countries.length === 0) ? 0.4 : 1 }}>
+                Continue
               </button>
             ) : (
-              <button onClick={generateItinerary} className="btn-primary" disabled={!canProceed()} style={{ opacity: canProceed() ? 1 : 0.4, minWidth: 180, justifyContent: 'center' }}>
-                🌍 Build My Itinerary
+              <button onClick={generateItinerary} style={{ padding: '12px 28px', background: 'linear-gradient(135deg, #C4915A, #A87840)', color: '#FAF6EF', border: 'none', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
+                Build My Itinerary
               </button>
             )}
           </div>
         )}
       </div>
 
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-8px); }
-        }
-      `}</style>
+      <style>{'@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }'}</style>
     </div>
   )
 }
