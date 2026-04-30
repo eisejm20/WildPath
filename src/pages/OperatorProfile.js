@@ -59,8 +59,11 @@ export default function OperatorProfile() {
             ← Back to Discover
           </Link>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap' }}>
-            <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-lg)', background: 'var(--sand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, flexShrink: 0 }}>
-              🌍
+            <div style={{ width: 80, height: 80, borderRadius: 'var(--radius-lg)', background: 'var(--sand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, flexShrink: 0, overflow: 'hidden' }}>
+              {operator.logo_url
+                ? <img src={operator.logo_url} alt={operator.business_name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                : '🌍'
+              }
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>

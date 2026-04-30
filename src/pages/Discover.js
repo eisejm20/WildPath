@@ -118,16 +118,21 @@ export default function Discover() {
               const badgeStyle = BADGE_COLORS[badge] || BADGE_COLORS['Hidden Gem']
               return (
                 <Link to={`/operators/${op.id}`} key={op.id} className="card" style={{ display: 'block', textDecoration: 'none' }}>
-                  {/* Card image placeholder */}
+                  
                   <div style={{
                     height: 200,
                     background: `linear-gradient(135deg, #3D2B1F, #6B4C35)`,
                     display: 'flex', alignItems: 'flex-end', padding: 20, position: 'relative',
+                    overflow: 'hidden',
                   }}>
-                    <div style={{ fontSize: 48, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-60%)', opacity: 0.3 }}>🌍</div>
+                    {op.logo_url
+                      ? <img src={op.logo_url} alt={op.business_name} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 140, height: 140, objectFit: 'contain' }} />
+                      : <div style={{ fontSize: 48, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-60%)', opacity: 0.3 }}>🌍</div>
+                    }
                     <div style={{
                       padding: '4px 12px', borderRadius: 'var(--radius-full)', fontSize: 11, fontWeight: 600,
                       background: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.border}`,
+                      position: 'relative', zIndex: 1,
                     }}>
                       {badge}
                     </div>
