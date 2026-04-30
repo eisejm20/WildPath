@@ -121,14 +121,18 @@ export default function Discover() {
                   
                   <div style={{
                     height: 200,
-                    background: `linear-gradient(135deg, #3D2B1F, #6B4C35)`,
+                    background: op.cover_url ? `url('${op.cover_url}') center/cover no-repeat` : `linear-gradient(135deg, #3D2B1F, #6B4C35)`,
                     display: 'flex', alignItems: 'flex-end', padding: 20, position: 'relative',
                     overflow: 'hidden',
                   }}>
-                    {op.logo_url
+                    {op.cover_url && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(26,17,8,0.6) 100%)' }} />}
+                    {!op.cover_url && (op.logo_url
                       ? <img src={op.logo_url} alt={op.business_name} style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 140, height: 140, objectFit: 'contain' }} />
                       : <div style={{ fontSize: 48, position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-60%)', opacity: 0.3 }}>🌍</div>
-                    }
+                    )}
+                    {op.logo_url && op.cover_url && (
+                      <img src={op.logo_url} alt={op.business_name} style={{ position: 'absolute', top: 16, right: 16, width: 56, height: 56, objectFit: 'contain', zIndex: 1 }} />
+                    )}
                     <div style={{
                       padding: '4px 12px', borderRadius: 'var(--radius-full)', fontSize: 11, fontWeight: 600,
                       background: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.border}`,
