@@ -8,6 +8,7 @@ import OperatorOnboard from './pages/OperatorOnboard'
 import OperatorProfile from './pages/OperatorProfile'
 import Discover from './pages/Discover'
 import Login from './pages/Login'
+import SafariAI from './pages/SafariAI'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/discover" element={<Discover />} />
         <Route path="/operators/join" element={<OperatorOnboard />} />
         <Route path="/operators/:id" element={<OperatorProfile />} />
+        <Route path="/ai" element={<SafariAI />} />
         <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
