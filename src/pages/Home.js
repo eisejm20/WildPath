@@ -141,7 +141,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section style={{ padding: '96px 24px', background: var(--ivory) }}>
+      <section style={{ padding: '96px 24px', background: '#FAF6EF' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 64 }}>
             <div className="section-label" style={{ marginBottom: 16 }}>The Platform</div>
