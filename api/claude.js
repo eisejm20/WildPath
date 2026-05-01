@@ -2,11 +2,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
+    return res.status(200).end()
   }
 
   if (req.method !== 'POST') {
@@ -16,7 +15,12 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' })
+    return res.status(500).json({ error: 'No API key configured' })
+  }
+
+  let body = req.body
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body) } catch(e) { body = {} }
   }
 
   try {
@@ -27,12 +31,12 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(body),
     })
 
     const data = await response.json()
     return res.status(response.status).json(data)
   } catch (err) {
-    return res.status(500).json({ error: err.message })
+    return res.status(500).json({ error: err.message, stack: err.stack })
   }
 }
