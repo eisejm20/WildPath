@@ -21,6 +21,7 @@ function App() {
         <Route path="/operators/join" element={<OperatorOnboard />} />
         <Route path="/operators/:id" element={<OperatorProfile />} />
         <Route path="/ai" element={<SafariAI />} />
+        <Route path="/solo" element={<SoloMatch />} />
         <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
