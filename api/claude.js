@@ -1,26 +1,20 @@
+export const config = { api: { bodyParser: true } }
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true)
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end()
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end()
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
-  }
+  const key = process.env.ANTHROPIC_API_KEY || process.env.REACT_APP_ANTHROPIC_KEY || null
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'No API key configured' })
-  }
-
-  let body = req.body
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body) } catch(e) { body = {} }
+  if (!key) {
+    return res.status(500).json({ 
+      error: 'No API key found',
+      available_vars: Object.keys(process.env).filter(k => k.includes('ANTHROP') || k.includes('REACT'))
+    })
   }
 
   try {
@@ -28,15 +22,14 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(req.body),
     })
-
     const data = await response.json()
     return res.status(response.status).json(data)
   } catch (err) {
-    return res.status(500).json({ error: err.message, stack: err.stack })
+    return res.status(500).json({ error: err.message })
   }
 }
