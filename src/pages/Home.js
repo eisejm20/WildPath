@@ -31,7 +31,7 @@ const FEATURES = [
   },
   {
     icon: '👥',
-    title: 'Solo Match',
+    title: 'Solo Match', link: '/solo',
     desc: 'Travelling alone? Find other solo travelers heading to the same destination and share the experience — and the cost.',
   },
   {

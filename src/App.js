@@ -9,6 +9,7 @@ import OperatorProfile from './pages/OperatorProfile'
 import Discover from './pages/Discover'
 import Login from './pages/Login'
 import SafariAI from './pages/SafariAI'
+import SoloMatch from './pages/SoloMatch'
 
 function App() {
   return (
