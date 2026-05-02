@@ -106,8 +106,39 @@ export default function SafariAI() {
     const groupLabel = GROUP_TYPES.find(g => g.id === groupType) ? GROUP_TYPES.find(g => g.id === groupType).label : groupType
     const budgetLabel = BUDGET_RANGES.find(b => b.id === budget) ? BUDGET_RANGES.find(b => b.id === budget).label : budget
 
-    // ── ADDED: structured format instruction appended to your prompt ──
-    return 'Please create a personalised safari itinerary based on these details:\n\nEXPERIENCES: ' + expLabels + '\nCOUNTRIES: ' + countryLabels + '\nDURATION: ' + duration + ' days\nTRAVEL MONTH: ' + month + '\nBUDGET: ' + budgetLabel + ' per person\nTRAVEL STYLE: ' + styleLabel + '\nGROUP: ' + groupLabel + ' (' + groupSize + ' people)\n' + (specificRequests ? 'SPECIFIC REQUESTS: ' + specificRequests : '') + '\n\nImportant: I understand Africa spans multiple countries and combining destinations like Uganda gorilla trekking with Kenya safari in one trip is completely normal. Please plan logical routing between destinations including internal flights where needed.\n\nFORMATTING: Format every day exactly like this so it can be shown as visual cards:\n**Day 1: [Location Name]**\n[One vivid scene-setting sentence.]\n- [Activity 1]\n- [Activity 2]\n- [Activity 3]\nLodge: [Real lodge name]\nMeals: [Details]\n\nDo not add any text before **Day 1**. Continue this format for all ' + duration + ' days.'
+    // ── UPDATED: richer prompt with narrative paragraph + evocative activity sentences ──
+    return `Please create a personalised safari itinerary based on these details:
+
+EXPERIENCES: ${expLabels}
+COUNTRIES: ${countryLabels}
+DURATION: ${duration} days
+TRAVEL MONTH: ${month}
+BUDGET: ${budgetLabel} per person
+TRAVEL STYLE: ${styleLabel}
+GROUP: ${groupLabel} (${groupSize} people)
+${specificRequests ? 'SPECIFIC REQUESTS: ' + specificRequests : ''}
+
+Important: Africa spans multiple countries and combining destinations like Uganda gorilla trekking with Kenya safari in one trip is completely normal. Please plan logical routing between destinations including internal flights where needed.
+
+FORMATTING — follow this exactly for every day so the itinerary displays as beautiful visual cards:
+
+**Day 1: [Location / Park Name]**
+[Write a vivid 2-3 sentence paragraph in the voice of a luxury travel writer. Set the scene — the light at this time of day, the landscape, the sounds, the feeling of arriving here. Make the reader feel the place before they arrive. Be specific to this destination and this month of travel.]
+- [Write each activity as a full evocative sentence, not just a label. Include sensory detail and what makes it special. e.g. "Rise before dawn for a game drive across the golden plains as lions return from their nightly hunt and the first amber light catches the tops of the acacia trees."]
+- [Full evocative sentence for activity 2]
+- [Full evocative sentence for activity 3]
+Lodge: [Real lodge or camp name]
+Meals: [Specific meal details — e.g. "Bush breakfast in the field, dinner under the stars at camp"]
+
+**Day 2: [Location / Park Name]**
+[2-3 sentence narrative paragraph — different tone and detail from day 1, specific to this day's location and experiences]
+- [Full evocative activity sentence]
+- [Full evocative activity sentence]
+- [Full evocative activity sentence]
+Lodge: [Real lodge name]
+Meals: [Details]
+
+Continue this format for all ${duration} days. Do not add any text before **Day 1**. After all days add a short "Practical notes" section with 3 useful tips specific to this trip.`
   }
 
   // ── CHANGED: generateItinerary now also parses + geocodes + saves ──
