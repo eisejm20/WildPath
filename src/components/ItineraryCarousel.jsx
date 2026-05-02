@@ -78,7 +78,7 @@ function DayModal({ day, onClose, onEnquire }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background:'var(--color-background-primary)', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
+      <div style={{ background:'#ffffff', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
 
         {/* Image header */}
         <div style={{ height:210, position:'relative', flexShrink:0 }}>
