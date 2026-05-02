@@ -4,8 +4,7 @@
 // then geocodes each location via Mapbox
 // ─────────────────────────────────────────────────────────────
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ||
-  'pk.eyJ1Ijoid2lsZHBhdGgiLCJhIjoiY21vbm1kejJuMGV3MjJwb21jamZsdWY2dCJ9.GR8n4zLnQnWWGWyisXvPeQ';
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const WILDLIFE_TAGS = {
   lion:      '🦁 Big cats',
