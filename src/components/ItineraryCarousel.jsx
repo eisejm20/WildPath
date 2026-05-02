@@ -76,7 +76,7 @@ function MapGridCell({ onClick }) {
 function DayModal({ day, onClose, onEnquire }) {
   if (!day) return null;
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{ background:'var(--color-background-primary)', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
 
