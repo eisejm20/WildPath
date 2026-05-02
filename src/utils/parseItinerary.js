@@ -4,7 +4,8 @@
 // then geocodes each location via Mapbox
 // ─────────────────────────────────────────────────────────────
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ||
+  'pk.eyJ1Ijoid2lsZHBhdGgiLCJhIjoiY21vbm1kejJuMGV3MjJwb21jamZsdWY2dCJ9.GR8n4zLnQnWWGWyisXvPeQ';
 
 const WILDLIFE_TAGS = {
   lion:      '🦁 Big cats',
@@ -70,19 +71,11 @@ function extractTravelMode(text) {
 
 // ─────────────────────────────────────────────────────────────
 // CORE PARSER
-// Expects Claude output structured as:
-//   **Day 1: Location Name**
-//   - Activity one
-//   - Activity two
-//   Lodge: Lodge Name
-//   Meals: Breakfast included
 // ─────────────────────────────────────────────────────────────
 export function parseItineraryText(rawText) {
   if (!rawText) return [];
 
-  // Split on Day headings (handles **Day 1:**, Day 1:, ## Day 1, etc.)
   const dayRegex = /(?:^|\n)\s*(?:\*{1,2})?(?:#{1,3}\s*)?day\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s*[:\-–]?\s*([^\n*#]*)/gi;
-
   const wordToNum = { one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10 };
 
   const matches = [];
@@ -98,44 +91,46 @@ export function parseItineraryText(rawText) {
   return matches.map((m, i) => {
     const blockEnd = i < matches.length - 1 ? matches[i + 1].index : rawText.length;
     const block = rawText.slice(m.index, blockEnd);
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
 
-    // Activities — lines starting with - • * or numbers
-    const activities = block
-      .split('\n')
+    // Description — lines after the heading that are NOT bullets, lodge, or meals
+    // Capture up to 3 non-bullet lines as the narrative paragraph
+    const descriptionLines = lines
+      .slice(1) // skip the Day N: heading line
+      .filter(l =>
+        !/^\s*[-•*\d\.]\s+/.test(l) &&
+        !/^lodge:/i.test(l) &&
+        !/^meals:/i.test(l) &&
+        !/^\*\*day/i.test(l) &&
+        l.length > 20
+      )
+      .slice(0, 3)
+    const description = descriptionLines.join(' ').replace(/\*+/g, '').trim() || null
+
+    // Activities
+    const activities = lines
       .filter(l => /^\s*[-•*\d\.]\s+/.test(l))
       .map(l => l.replace(/^\s*[-•*\d\.]+\s*/, '').replace(/\*+/g, '').trim())
       .filter(Boolean)
-      .slice(0, 4);
+      .slice(0, 4)
 
     // Lodge
-    const lodgeMatch = block.match(/(?:lodge|camp|hotel|stay|overnight|accommodation|staying at)[:\s]+([^.\n,*]+)/i);
-    const lodge = lodgeMatch?.[1]?.replace(/\*+/g, '').trim() || null;
+    const lodgeMatch = block.match(/(?:lodge|camp|hotel|stay|overnight|accommodation|staying at)[:\s]+([^.\n,*]+)/i)
+    const lodge = lodgeMatch?.[1]?.replace(/\*+/g, '').trim() || null
 
     // Meals
-    const mealMatches = block.match(/(?:breakfast|lunch|dinner|bush dinner|sundowner|champagne breakfast)[^.\n]*/gi) || [];
-    const meals = [...new Set(mealMatches.map(m => m.replace(/\*+/g, '').trim()))].slice(0, 3);
+    const mealMatch = block.match(/meals?[:\s]+([^\n*]+)/i)
+    const meals = mealMatch?.[1]?.replace(/\*+/g, '').trim() || null
 
-    // Travel mode (into this day)
-    const travelMode = extractTravelMode(block);
-
-    // Tags from full block text
-    const tags = extractTags(block);
-
-    // Location — use the day title, or extract from text
+    const travelMode = extractTravelMode(block)
+    const tags = extractTags(block)
     const location = m.title ||
       block.match(/(?:in|at|to|arrive|arriving at)\s+([A-Z][a-zA-Z\s]{3,30})/)?.[1]?.trim() ||
-      `Day ${m.dayNum}`;
+      `Day ${m.dayNum}`
 
-    // Country hint
-    const countryHints = { kenya:1,tanzania:1,uganda:1,botswana:1,zimbabwe:1,zambia:1,'south africa':1,namibia:1,rwanda:1 };
-    const blockLower = block.toLowerCase();
-    const country = Object.keys(countryHints).find(c => blockLower.includes(c)) || null;
-
-    // Caption — first sentence of the block that isn't a heading or bullet
-    const captionLine = block
-      .split('\n')
-      .find(l => l.trim().length > 40 && !/^\s*[-•*#]/.test(l) && !/day\s+\d+/i.test(l));
-    const caption = captionLine?.replace(/\*+/g, '').trim() || null;
+    const blockLower = block.toLowerCase()
+    const countryHints = { kenya:1,tanzania:1,uganda:1,botswana:1,zimbabwe:1,zambia:1,'south africa':1,namibia:1,rwanda:1 }
+    const country = Object.keys(countryHints).find(c => blockLower.includes(c)) || null
 
     return {
       day_number:  m.dayNum,
@@ -143,15 +138,16 @@ export function parseItineraryText(rawText) {
       country,
       lodge,
       activities,
+      description, // ← narrative paragraph
       tags,
       meals,
       travel_mode: travelMode,
       gradient:    getGradient(location),
-      caption,
-      lat:         null,  // populated by geocodeDay()
+      caption:     description, // alias for backward compat
+      lat:         null,
       lon:         null,
-    };
-  });
+    }
+  })
 }
 
 // ─────────────────────────────────────────────────────────────
