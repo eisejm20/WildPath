@@ -160,7 +160,7 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
-          max_tokens: 4096,
+          max_tokens: 8096,
           system: SYSTEM_PROMPT,
           messages: newMessages,
         }),
