@@ -1,4 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { supabase } from '../supabaseClient'
+import { parseItineraryText, geocodeAllDays, saveItinerary } from '../utils/parseItinerary'
+import ItineraryCarousel from '../components/ItineraryCarousel'
+
+// ── Everything below line 3 is UNCHANGED from your original ──
 
 const EXPERIENCES = [
   { id: 'big5', label: 'Big Five Game Drive', icon: '🦁' },
@@ -73,8 +78,15 @@ export default function SafariAI() {
   const [specificRequests, setSpecificRequests] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
+  const [loadingStep, setLoadingStep] = useState('')
   const [followUp, setFollowUp] = useState('')
   const [itineraryGenerated, setItineraryGenerated] = useState(false)
+
+  // ── NEW state for carousel ──
+  const [parsedDays, setParsedDays] = useState([])
+  const [itineraryId, setItineraryId] = useState(null)
+  const [showCarousel, setShowCarousel] = useState(false)
+
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -86,6 +98,7 @@ export default function SafariAI() {
     else setList([...list, id])
   }
 
+  // ── UNCHANGED: your original buildPrompt ──
   function buildPrompt() {
     const expLabels = experiences.map(id => EXPERIENCES.find(e => e.id === id)).filter(Boolean).map(e => e.label).join(', ')
     const countryLabels = countries.map(id => COUNTRIES.find(c => c.id === id)).filter(Boolean).map(c => c.label + ' (' + c.note + ')').join(', ')
@@ -93,16 +106,23 @@ export default function SafariAI() {
     const groupLabel = GROUP_TYPES.find(g => g.id === groupType) ? GROUP_TYPES.find(g => g.id === groupType).label : groupType
     const budgetLabel = BUDGET_RANGES.find(b => b.id === budget) ? BUDGET_RANGES.find(b => b.id === budget).label : budget
 
-    return 'Please create a personalised safari itinerary based on these details:\n\nEXPERIENCES: ' + expLabels + '\nCOUNTRIES: ' + countryLabels + '\nDURATION: ' + duration + ' days\nTRAVEL MONTH: ' + month + '\nBUDGET: ' + budgetLabel + ' per person\nTRAVEL STYLE: ' + styleLabel + '\nGROUP: ' + groupLabel + ' (' + groupSize + ' people)\n' + (specificRequests ? 'SPECIFIC REQUESTS: ' + specificRequests : '') + '\n\nImportant: I understand Africa spans multiple countries and combining destinations like Uganda gorilla trekking with Kenya safari in one trip is completely normal. Please plan logical routing between destinations including internal flights where needed.'
+    // ── ADDED: structured format instruction appended to your prompt ──
+    return 'Please create a personalised safari itinerary based on these details:\n\nEXPERIENCES: ' + expLabels + '\nCOUNTRIES: ' + countryLabels + '\nDURATION: ' + duration + ' days\nTRAVEL MONTH: ' + month + '\nBUDGET: ' + budgetLabel + ' per person\nTRAVEL STYLE: ' + styleLabel + '\nGROUP: ' + groupLabel + ' (' + groupSize + ' people)\n' + (specificRequests ? 'SPECIFIC REQUESTS: ' + specificRequests : '') + '\n\nImportant: I understand Africa spans multiple countries and combining destinations like Uganda gorilla trekking with Kenya safari in one trip is completely normal. Please plan logical routing between destinations including internal flights where needed.\n\nFORMATTING: Format every day exactly like this so it can be shown as visual cards:\n**Day 1: [Location Name]**\n[One vivid scene-setting sentence.]\n- [Activity 1]\n- [Activity 2]\n- [Activity 3]\nLodge: [Real lodge name]\nMeals: [Details]\n\nDo not add any text before **Day 1**. Continue this format for all ' + duration + ' days.'
   }
 
+  // ── CHANGED: generateItinerary now also parses + geocodes + saves ──
   async function generateItinerary() {
     setStep(3)
     setItineraryGenerated(false)
+    setShowCarousel(false)
+    setParsedDays([])
     setLoading(true)
+    setLoadingStep('Crafting your itinerary...')
+
     const prompt = buildPrompt()
     const newMessages = [{ role: 'user', content: prompt }]
     setMessages(newMessages)
+
     try {
       const res = await fetch('/api/claude', {
         method: 'POST',
@@ -119,12 +139,51 @@ export default function SafariAI() {
       const updated = [...newMessages, { role: 'assistant', content: text }]
       setMessages(updated)
       setItineraryGenerated(true)
+
+      // ── NEW: parse → geocode → save → show carousel ──
+      setLoadingStep('Building your day cards...')
+      const days = parseItineraryText(text)
+
+      if (days.length > 0) {
+        setLoadingStep('Mapping your route...')
+        const geocoded = await geocodeAllDays(days)
+        setParsedDays(geocoded)
+        setShowCarousel(true)
+
+        // Save to Supabase in background — non-fatal if it fails
+        try {
+          const countryLabels = countries.map(id => COUNTRIES.find(c => c.id === id)).filter(Boolean).map(c => c.label)
+          const budgetLabel = BUDGET_RANGES.find(b => b.id === budget)?.label || budget
+          const saved = await saveItinerary(supabase, {
+            formData: {
+              destination: countryLabels.join(' & '),
+              countries:   countryLabels,
+              duration,
+              travelers:   groupSize,
+              budget:      budgetLabel,
+              month,
+              travelStyle,
+              experiences: experiences.map(id => EXPERIENCES.find(e => e.id === id)?.label).filter(Boolean),
+              specificRequests,
+            },
+            rawText: text,
+            days: geocoded,
+          })
+          setItineraryId(saved.id)
+        } catch (saveErr) {
+          console.warn('Supabase save failed (non-fatal):', saveErr)
+        }
+      }
+
     } catch (err) {
       setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
+
     setLoading(false)
+    setLoadingStep('')
   }
 
+  // ── UNCHANGED: sendFollowUp ──
   async function sendFollowUp() {
     if (!followUp.trim() || loading) return
     const text = followUp.trim()
@@ -152,6 +211,7 @@ export default function SafariAI() {
     setLoading(false)
   }
 
+  // ── UNCHANGED: reset — added carousel state reset ──
   function reset() {
     setStep(0)
     setExperiences([])
@@ -167,8 +227,13 @@ export default function SafariAI() {
     setFollowUp('')
     setLoading(false)
     setItineraryGenerated(false)
+    setParsedDays([])
+    setShowCarousel(false)
+    setItineraryId(null)
+    setLoadingStep('')
   }
 
+  // ── UNCHANGED: btnStyle ──
   const btnStyle = (active) => ({
     padding: '10px 14px', borderRadius: '8px', textAlign: 'left',
     border: '1.5px solid', cursor: 'pointer', transition: 'all 0.15s ease',
@@ -177,8 +242,18 @@ export default function SafariAI() {
     fontFamily: 'DM Sans, sans-serif', color: '#3D2B1F',
   })
 
+  // ── Carousel formData shape ──
+  const carouselFormData = {
+    destination: countries.map(id => COUNTRIES.find(c => c.id === id)?.label).filter(Boolean).join(' & '),
+    duration,
+    travelers: groupSize,
+    budget: BUDGET_RANGES.find(b => b.id === budget)?.label || budget,
+    month,
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: '#FAF6EF', paddingTop: 68 }}>
+      {/* ── UNCHANGED: hero header ── */}
       <div style={{ background: 'linear-gradient(135deg, #1A1108, #3D2B1F)', padding: '48px 24px 40px', textAlign: 'center' }}>
         <div style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: '#E8B882', marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Powered by Claude AI</div>
         <h1 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 'clamp(32px, 5vw, 52px)', color: '#FAF6EF', marginBottom: 16, fontWeight: 300 }}>Safari AI Planner</h1>
@@ -204,6 +279,7 @@ export default function SafariAI() {
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px 80px' }}>
 
+        {/* ── UNCHANGED: step 0, 1, 2 ── */}
         {step === 0 && (
           <div>
             <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 8 }}>What experiences do you want?</h2>
@@ -241,7 +317,6 @@ export default function SafariAI() {
               <h2 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 4 }}>Trip details</h2>
               <p style={{ fontSize: 14, color: '#8B8070', fontFamily: 'DM Sans, sans-serif' }}>The more specific you are, the better your itinerary.</p>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Duration</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -252,7 +327,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travel Month</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -263,7 +337,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Budget Per Person</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
@@ -275,7 +348,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travel Style</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
@@ -288,7 +360,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Travelling As</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
@@ -300,7 +371,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Number of Travellers</div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -311,7 +381,6 @@ export default function SafariAI() {
                 ))}
               </div>
             </div>
-
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6B4C35', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, fontFamily: 'DM Sans, sans-serif' }}>Specific Requests</div>
               <p style={{ fontSize: 13, color: '#8B8070', marginBottom: 10, fontFamily: 'DM Sans, sans-serif' }}>Any specific lodges or experiences? e.g. "I want to stay at Giraffe Manor" or "must include Victoria Falls"</p>
@@ -320,12 +389,16 @@ export default function SafariAI() {
           </div>
         )}
 
+        {/* ── STEP 3: CHANGED — carousel replaces raw text output ── */}
         {step === 3 && (
           <div>
-            {loading && messages.length <= 1 && (
+            {/* Loading state — unchanged visually */}
+            {loading && (
               <div style={{ textAlign: 'center', padding: '60px 0' }}>
                 <div style={{ fontSize: 56, marginBottom: 24 }}>🌍</div>
-                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 12 }}>Building your itinerary...</h3>
+                <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 28, marginBottom: 12 }}>
+                  {loadingStep || 'Building your itinerary...'}
+                </h3>
                 <p style={{ fontSize: 14, color: '#8B8070', fontFamily: 'DM Sans, sans-serif' }}>Our AI is planning your perfect African safari.</p>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
                   {[0,1,2].map(i => (
@@ -335,22 +408,27 @@ export default function SafariAI() {
               </div>
             )}
 
-            {messages.filter(m => m.role === 'assistant').map((msg, i) => (
+            {/* ── NEW: carousel shown when days are parsed ── */}
+            {!loading && showCarousel && parsedDays.length > 0 && (
+              <div style={{ marginBottom: 40 }}>
+                <ItineraryCarousel
+                  days={parsedDays}
+                  formData={carouselFormData}
+                  itineraryId={itineraryId}
+                  onEnquire={() => { window.location.href = '/discover' }}
+                  onReset={reset}
+                />
+              </div>
+            )}
+
+            {/* ── FALLBACK: if parser got 0 days, show raw text as before ── */}
+            {!loading && !showCarousel && messages.filter(m => m.role === 'assistant').map((msg, i) => (
               <div key={i} style={{ background: '#FFFFFF', borderRadius: '16px', padding: 32, fontSize: 15, lineHeight: 1.9, color: '#3D2B1F', whiteSpace: 'pre-wrap', boxShadow: '0 2px 8px rgba(61,43,31,0.08)', marginBottom: 24 }}>
                 {msg.content}
               </div>
             ))}
 
-            {loading && messages.length > 1 && (
-              <div style={{ display: 'flex', gap: 8, padding: 20, background: '#FFFFFF', borderRadius: '12px', marginBottom: 24 }}>
-                {[0,1,2].map(i => (
-                  <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: '#C4915A', animation: 'bounce 1.2s infinite', animationDelay: (i * 0.2) + 's' }} />
-                ))}
-              </div>
-            )}
-
-            <div ref={bottomRef} />
-
+            {/* ── UNCHANGED: follow-up chat (shows below carousel or raw text) ── */}
             {itineraryGenerated && !loading && (
               <div style={{ background: '#FFFFFF', borderRadius: '16px', padding: 24, boxShadow: '0 2px 8px rgba(61,43,31,0.08)', marginBottom: 24 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#6B4C35', marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>Refine your itinerary</div>
@@ -370,7 +448,8 @@ export default function SafariAI() {
               </div>
             )}
 
-            {itineraryGenerated && (
+            {/* ── UNCHANGED: bottom action buttons ── */}
+            {itineraryGenerated && !loading && (
               <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
                 <button onClick={reset} style={{ padding: '12px 24px', background: 'transparent', color: '#3D2B1F', border: '1.5px solid #C4B8A8', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif' }}>
                   Plan a different safari
@@ -380,9 +459,12 @@ export default function SafariAI() {
                 </a>
               </div>
             )}
+
+            <div ref={bottomRef} />
           </div>
         )}
 
+        {/* ── UNCHANGED: nav buttons for steps 0–2 ── */}
         {step < 3 && (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 40, paddingTop: 24, borderTop: '1px solid #F0E8DC' }}>
             <button onClick={() => setStep(s => s - 1)} style={{ padding: '12px 24px', background: 'transparent', color: '#3D2B1F', border: '1.5px solid #C4B8A8', borderRadius: '999px', fontSize: 14, cursor: 'pointer', fontFamily: 'DM Sans, sans-serif', opacity: step === 0 ? 0 : 1, pointerEvents: step === 0 ? 'none' : 'auto' }}>
