@@ -6,8 +6,7 @@
 
 import { useState, useRef } from 'react';
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ||
-  'pk.eyJ1Ijoid2lsZHBhdGgiLCJhIjoiY21vbm1kajJuMGV3MjJwb21jamZsdWY2dCJ9.GR8n4zLnQnWWGWyisXvPeQ';
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
 const SVG_W = 292, SVG_H = 460;
 const PAD   = 1.5;
