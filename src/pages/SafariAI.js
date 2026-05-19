@@ -78,9 +78,9 @@ export default function SafariAI() {
   const [specificRequests, setSpecificRequests] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
-  const 
-}, 3000)
-setLoadingStep(loadingMessages[0])
+  
+
+
   const [followUp, setFollowUp] = useState('')
   const [itineraryGenerated, setItineraryGenerated] = useState(false)
 
