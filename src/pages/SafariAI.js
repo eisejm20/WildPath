@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { parseItineraryText, geocodeAllDays, saveItinerary } from '../utils/parseItinerary'
-import ItineraryCarousel from '../components/ItineraryCarousel'
+// import { parseItineraryText, geocodeAllDays, saveItinerary } from '../utils/parseItinerary'
+// import ItineraryCarousel from '../components/ItineraryCarousel'
 
 // ── Everything below line 3 is UNCHANGED from your original ──
 
