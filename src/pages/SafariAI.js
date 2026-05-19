@@ -162,7 +162,21 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
     setShowCarousel(false)
     setParsedDays([])
     setLoading(true)
-    setLoadingStep('Crafting your itinerary...')
+    const loadingMessages = [
+  'Consulting our Africa experts...',
+  'Plotting the perfect route...',
+  'Selecting the finest lodges...',
+  'Timing your wildlife encounters...',
+  'Checking the migration calendar...',
+  'Crafting your day-by-day story...',
+  'Almost ready — great things take time...',
+]
+let msgIndex = 0
+const msgInterval = setInterval(() => {
+  msgIndex = (msgIndex + 1) % loadingMessages.length
+  setLoadingStep(loadingMessages[msgIndex])
+}, 3000)
+setLoadingStep(loadingMessages[0])setLoadingStep('Crafting your itinerary...')
 
     const prompt = buildPrompt()
     const newMessages = [{ role: 'user', content: prompt }]
@@ -223,7 +237,7 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
     } catch (err) {
       setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
-
+clearInterval(msgInterval)
     setLoading(false)
     setLoadingStep('')
   }
