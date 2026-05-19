@@ -78,7 +78,7 @@ function DayModal({ day, onClose, onEnquire }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background:'var(--color-background-primary)', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
+      <div style={{ background:'#FAF6EF', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
 
         {/* Image header */}
         <div style={{ height:210, position:'relative', flexShrink:0 }}>
@@ -147,9 +147,9 @@ function MapModal({ days, onClose }) {
   const geo = days.filter(d => d.lat && d.lon);
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.92)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background:'#ffffff', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'92vh' }}>
+      <div style={{ background:'#FAF6EF', borderRadius:16, width:'100%', maxWidth:440, overflow:'hidden', maxHeight:'92vh' }}>
         <div style={{ position:'relative', height:500, background:'#141f14' }}>
           {mapData && (
             <img src={mapData.url} alt="Route map" onLoad={() => setImgLoaded(true)}
