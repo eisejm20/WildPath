@@ -78,9 +78,7 @@ export default function SafariAI() {
   const [specificRequests, setSpecificRequests] = useState('')
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
-  
-
-
+  const [loadingStep, setLoadingStep] = useState('')
   const [followUp, setFollowUp] = useState('')
   const [itineraryGenerated, setItineraryGenerated] = useState(false)
 
@@ -146,26 +144,27 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
   // ── CHANGED: generateItinerary now also parses + geocodes + saves ──
   async function generateItinerary() {
     setStep(3)
-    const loadingMessages = [
-  'Consulting our Africa experts...',
-  'Plotting the perfect route...',
-  'Selecting the finest lodges...',
-  'Timing your wildlife encounters...',
-  'Checking the migration calendar...',
-  'Crafting your day-by-day story...',
-  'Almost ready — great things take time...',
-]
-let msgIndex = 0
-const msgInterval = setInterval(() => {
-  msgIndex = (msgIndex + 1) % loadingMessages.length
-  setLoadingStep(loadingMessages[msgIndex])
-}, 3000)
-setLoadingStep(loadingMessages[0])
     setItineraryGenerated(false)
     setShowCarousel(false)
     setParsedDays([])
     setLoading(true)
-    
+
+    // ── Rotating loading messages ──
+    const loadingMessages = [
+      'Consulting our Africa experts...',
+      'Plotting the perfect route...',
+      'Selecting the finest lodges...',
+      'Timing your wildlife encounters...',
+      'Checking the migration calendar...',
+      'Crafting your day-by-day story...',
+      'Almost ready — great things take time...',
+    ]
+    let msgIndex = 0
+    const msgInterval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % loadingMessages.length
+      setLoadingStep(loadingMessages[msgIndex])
+    }, 3000)
+    setLoadingStep(loadingMessages[0])
 
     const prompt = buildPrompt()
     const newMessages = [{ role: 'user', content: prompt }]
@@ -226,7 +225,8 @@ setLoadingStep(loadingMessages[0])
     } catch (err) {
       setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     }
-clearInterval(msgInterval)
+
+    clearInterval(msgInterval)
     setLoading(false)
     setLoadingStep('')
   }
