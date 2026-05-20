@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
 const COUNTRIES = [
-  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&q=80' },
-  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=400&q=80' },
-  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://images.unsplash.com/photo-1516657473732-0b58b3e3a2cf?w=400&q=80' },
-  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://images.unsplash.com/photo-1516637090014-b698c2e7b12a?w=400&q=80' },
-  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://images.unsplash.com/photo-1612686635542-2244ed9f8ddc?w=400&q=80' },
-  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=400&q=80' },
-  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://images.unsplash.com/photo-1589825743026-4fb3b4099e2e?w=400&q=80' },
-  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=400&q=80' },
-  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1551866613-2abe4f58db2b?w=400&q=80' },
-  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1567753418686-cf63cd2c47c5?w=400&q=80' },
+  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://unsplash.com/photos/a-truck-driving-through-a-lush-green-field-T9srAKGVGJY/download?w=400' },
+  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://unsplash.com/photos/male-lion-in-the-savanna-QpmBMCLpZUo/download?w=400' },
+  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://unsplash.com/photos/herd-of-bulls-1pZJqQlgpsY/download?w=400' },
+  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://unsplash.com/photos/a-close-up-of-a-gorilla-with-a-tree-in-the-background-DICiPcdLDXY/download?w=400' },
+  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://unsplash.com/photos/black-gorilla-lying-on-green-grass-during-daytime-pJGA1LYp_lc/download?w=400' },
+  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://unsplash.com/photos/elephant-in-okavango-delta-11HkdMrLhnM/download?w=400' },
+  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://unsplash.com/photos/a-group-of-wild-dogs-laying-on-top-of-a-dirt-field-Kzr67UxKbYU/download?w=400' },
+  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://unsplash.com/photos/a-giraffe-standing-in-a-dry-grass-field-yiOB97kM9iA/download?w=400' },
+  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://unsplash.com/photos/leopard-in-morning-sun-OVBbX1ENU_g/download?w=400' },
+  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://unsplash.com/photos/adult-rhinosaurus-jBjQA3LU9Dc/download?w=400' },
 ]
 
 const BADGE_COLORS = {
