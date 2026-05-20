@@ -34,6 +34,7 @@ function curvedD(x1,y1,x2,y2) {
 
 function GridCell({ day, onClick }) {
   const [hovered, setHovered] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   return (
     <div
       style={{ position:'relative', aspectRatio:'1', overflow:'hidden', cursor:'pointer' }}
@@ -41,9 +42,19 @@ function GridCell({ day, onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:36, background: day.gradient || '#1a2a1a', transition:'transform 0.3s', transform: hovered ? 'scale(1.06)' : 'scale(1)' }}>
+      {/* Gradient fallback always underneath */}
+      <div style={{ position:'absolute', inset:0, background: day.gradient || '#1a2a1a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:36 }}>
         {day.tags?.[0]?.split(' ')[0] || '🌿'}
       </div>
+      {/* Real photo on top when available */}
+      {day.photo && (
+        <img
+          src={day.photo}
+          alt={day.location}
+          onLoad={() => setImgLoaded(true)}
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity: imgLoaded ? 1 : 0, transition:'opacity 0.4s', transform: hovered ? 'scale(1.06)' : 'scale(1)', transitionProperty:'opacity,transform', transitionDuration:'0.4s' }}
+        />
+      )}
       <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.72) 0%,transparent 60%)' }}/>
       <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:8 }}>
         <div style={{ fontSize:9, fontWeight:500, color:'#C8975A', letterSpacing:'0.08em', textTransform:'uppercase' }}>Day {day.day_number}</div>
@@ -85,6 +96,10 @@ function DayModal({ day, onClose, onEnquire }) {
           <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:64, background: day.gradient || '#1a2a1a' }}>
             {day.tags?.[0]?.split(' ')[0] || '🌿'}
           </div>
+          {day.photo && (
+            <img src={day.photo} alt={day.location}
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }}/>
+          )}
           <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top,rgba(0,0,0,0.8) 0%,rgba(0,0,0,0.1) 55%,transparent 100%)' }}/>
           <button onClick={onClose} style={{ position:'absolute', top:12, right:12, width:30, height:30, borderRadius:'50%', background:'rgba(0,0,0,0.55)', border:'none', color:'#fff', fontSize:18, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>×</button>
           <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'16px 18px' }}>
