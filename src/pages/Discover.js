@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
 const COUNTRIES = [
-  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Masai_Mara%2C_Kenya_%2852453470747%29.jpg/640px-Masai_Mara%2C_Kenya_%2852453470747%29.jpg' },
-  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Lion_in_masai_mara.jpg/640px-Lion_in_masai_mara.jpg' },
-  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Wildebeest_in_Tanzania.jpg/640px-Wildebeest_in_Tanzania.jpg' },
-  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Mountain_gorilla_%28Gorilla_beringei_beringei%29_2.jpg/640px-Mountain_gorilla_%28Gorilla_beringei_beringei%29_2.jpg' },
-  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Female_Gorilla_with_baby_in_Rwandan_rain_forest.jpg/640px-Female_Gorilla_with_baby_in_Rwandan_rain_forest.jpg' },
-  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/African_Bush_Elephant.jpg/640px-African_Bush_Elephant.jpg' },
-  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/African_wild_dog_%28Lycaon_pictus%29_%28South_Africa%29.jpg/640px-African_wild_dog_%28Lycaon_pictus%29_%28South_Africa%29.jpg' },
-  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Sossusvlei_suicide_dune.jpg/640px-Sossusvlei_suicide_dune.jpg' },
-  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Leopard_africa.jpg/640px-Leopard_africa.jpg' },
-  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/White_rhinoceros_square-lipped_rhinoceros_%28Ceratotherium_simum%29_%28Africa%29.jpg/640px-White_rhinoceros_square-lipped_rhinoceros_%28Ceratotherium_simum%29_%28Africa%29.jpg' },
+  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=400&q=80' },
+  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=400&q=80' },
+  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://images.unsplash.com/photo-1516657473732-0b58b3e3a2cf?w=400&q=80' },
+  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://images.unsplash.com/photo-1516637090014-b698c2e7b12a?w=400&q=80' },
+  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://images.unsplash.com/photo-1612686635542-2244ed9f8ddc?w=400&q=80' },
+  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=400&q=80' },
+  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://images.unsplash.com/photo-1589825743026-4fb3b4099e2e?w=400&q=80' },
+  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=400&q=80' },
+  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1551866613-2abe4f58db2b?w=400&q=80' },
+  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1567753418686-cf63cd2c47c5?w=400&q=80' },
 ]
 
 const BADGE_COLORS = {
