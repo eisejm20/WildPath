@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 
 const COUNTRIES = [
-  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=300&q=80' },
-  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=300&q=80' },
-  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://images.unsplash.com/photo-1523805009345-7448845a9e53?w=300&q=80' },
-  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://images.unsplash.com/photo-1516637090014-b698c2e7b12a?w=300&q=80' },
-  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://images.unsplash.com/photo-1612686635542-2244ed9f8ddc?w=300&q=80' },
-  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=300&q=80' },
-  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://images.unsplash.com/photo-1589825743026-4fb3b4099e2e?w=300&q=80' },
-  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1468071174046-657d9d351a40?w=300&q=80' },
-  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1551866613-2abe4f58db2b?w=300&q=80' },
-  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1567753418686-cf63cd2c47c5?w=300&q=80' },
+  { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', query:'africa safari savanna landscape' },
+  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', query:'lion masai mara kenya safari' },
+  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', query:'wildebeest serengeti migration tanzania' },
+  { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', query:'mountain gorilla uganda bwindi' },
+  { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', query:'gorilla rwanda volcanoes forest' },
+  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', query:'elephant okavango delta botswana' },
+  { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', query:'kruger national park wild dog south africa' },
+  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', query:'sossusvlei sand dunes namibia desert' },
+  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', query:'leopard tree africa safari wildlife' },
+  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', query:'white rhino africa safari zambia' },
 ]
 
 const BADGE_COLORS = {
@@ -30,9 +30,21 @@ const SAMPLE_OPERATORS = [
   { id: 'sample6', business_name: 'Namibia Desert Nomads', country: 'Namibia', destinations: 'Damaraland, Sossusvlei, Etosha', bio: 'Self-drive and guided desert safaris across Namibia. Specialists in desert-adapted elephant tracking in Damaraland.', experience_types: ['Big Five Game Drive', 'Photography Safari', 'Walking Safari'], min_price: 300, max_price: 650, badge: 'Rising Star' },
 ]
 
+const UNSPLASH_KEY = process.env.REACT_APP_UNSPLASH_ACCESS_KEY
+
 function CountryTile({ c, active, onClick }) {
+  const [imgUrl, setImgUrl] = useState(null)
   const [imgLoaded, setImgLoaded] = useState(false)
   const isActive = active === c.label
+
+  useEffect(() => {
+    if (!UNSPLASH_KEY) return
+    fetch(`https://api.unsplash.com/photos/random?query=${encodeURIComponent(c.query)}&orientation=squarish&content_filter=high&client_id=${UNSPLASH_KEY}`)
+      .then(r => r.json())
+      .then(d => { if (d?.urls?.small) setImgUrl(d.urls.small) })
+      .catch(() => {})
+  }, [c.query])
+
   return (
     <div
       onClick={onClick}
@@ -49,13 +61,15 @@ function CountryTile({ c, active, onClick }) {
       <div style={{ position:'absolute', inset:0, background:c.grad, display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 }}>
         {c.flag}
       </div>
-      {/* Real photo */}
-      <img
-        src={c.photo}
-        alt={c.label}
-        onLoad={() => setImgLoaded(true)}
-        style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity: imgLoaded ? 1 : 0, transition:'opacity 0.4s' }}
-      />
+      {/* Real photo from Unsplash API */}
+      {imgUrl && (
+        <img
+          src={imgUrl}
+          alt={c.label}
+          onLoad={() => setImgLoaded(true)}
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity: imgLoaded ? 1 : 0, transition:'opacity 0.4s' }}
+        />
+      )}
       {/* Overlay */}
       <div style={{
         position:'absolute', inset:0,
