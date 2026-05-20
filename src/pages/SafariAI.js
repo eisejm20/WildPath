@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { parseItineraryText, geocodeAllDays, saveItinerary } from '../utils/parseItinerary'
+import { parseItineraryText, geocodeAllDays, saveItinerary, fetchAllPhotos } from '../utils/parseItinerary'
 import ItineraryCarousel from '../components/ItineraryCarousel'
+
 // ── Everything below line 3 is UNCHANGED from your original ──
 
 const EXPERIENCES = [
@@ -193,7 +194,10 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
       if (days.length > 0) {
         setLoadingStep('Mapping your route...')
         const geocoded = await geocodeAllDays(days)
-        setParsedDays(geocoded)
+
+        setLoadingStep('Finding the perfect photos...')
+        const withPhotos = await fetchAllPhotos(geocoded)
+        setParsedDays(withPhotos)
         setShowCarousel(true)
 
         // Save to Supabase in background — non-fatal if it fails
@@ -213,7 +217,7 @@ Continue this format for all ${duration} days. Do not add any text before **Day 
               specificRequests,
             },
             rawText: text,
-            days: geocoded,
+            days: withPhotos,
           })
           setItineraryId(saved.id)
         } catch (saveErr) {
