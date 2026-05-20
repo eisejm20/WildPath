@@ -4,15 +4,15 @@ import { supabase } from '../supabaseClient'
 
 const COUNTRIES = [
   { label:'All',          flag:'🌍', grad:'linear-gradient(135deg,#2D4A2D,#C8975A)', photo:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=300&q=80' },
-  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://images.unsplash.com/photo-1552673597-e3cd6747a996?w=300&q=80' },
-  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=300&q=80' },
+  { label:'Kenya',        flag:'🇰🇪', grad:'linear-gradient(135deg,#1a1200,#8B6914)', photo:'https://images.unsplash.com/photo-1549366021-9f761d450615?w=300&q=80' },
+  { label:'Tanzania',     flag:'🇹🇿', grad:'linear-gradient(135deg,#0d1a00,#4a6e1a)', photo:'https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=300&q=80' },
   { label:'Uganda',       flag:'🇺🇬', grad:'linear-gradient(135deg,#0a1a0a,#2D5A2D)', photo:'https://images.unsplash.com/photo-1612686635542-2244ed9f8ddc?w=300&q=80' },
   { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=300&q=80' },
-  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1564760290292-23341e4df6ec?w=300&q=80' },
+  { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1567756577868-c5f2bc736f86?w=300&q=80' },
   { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://images.unsplash.com/photo-1504432842672-1a79f78e4084?w=300&q=80' },
   { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1489493887464-892be6d1daae?w=300&q=80' },
-  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1502784444187-359ac186c5bb?w=300&q=80' },
-  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1537286765543-e0b9ef6fcfae?w=300&q=80' },
+  { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1510771463146-e89e6e86560e?w=300&q=80' },
+  { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1507128641416-ad9628caa6ba?w=300&q=80' },
 ]
 
 const BADGE_COLORS = {
