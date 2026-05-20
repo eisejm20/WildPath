@@ -4,8 +4,65 @@
 // then geocodes each location via Mapbox
 // ─────────────────────────────────────────────────────────────
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ||
-  'pk.eyJ1Ijoid2lsZHBhdGgiLCJhIjoiY21vbm1kejJuMGV3MjJwb21jamZsdWY2dCJ9.GR8n4zLnQnWWGWyisXvPeQ';
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+const UNSPLASH_KEY = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+
+// ─────────────────────────────────────────────────────────────
+// UNSPLASH PHOTO FETCHING
+// ─────────────────────────────────────────────────────────────
+
+const FALLBACK_PHOTOS = {
+  'masai mara':  'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=800&q=80',
+  'maasai mara': 'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=800&q=80',
+  'serengeti':   'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+  'amboseli':    'https://images.unsplash.com/photo-1567753418686-cf63cd2c47c5?w=800&q=80',
+  'kruger':      'https://images.unsplash.com/photo-1589825743026-4fb3b4099e2e?w=800&q=80',
+  'okavango':    'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80',
+  'bwindi':      'https://images.unsplash.com/photo-1516637090014-b698c2e7b12a?w=800&q=80',
+  'ngorongoro':  'https://images.unsplash.com/photo-1516657473732-0b58b3e3a2cf?w=800&q=80',
+  'chobe':       'https://images.unsplash.com/photo-1551866613-2abe4f58db2b?w=800&q=80',
+  'nairobi':     'https://images.unsplash.com/photo-1529417305485-480f579e7578?w=800&q=80',
+  'zanzibar':    'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&q=80',
+  'default':     'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+};
+
+function getFallbackPhoto(location) {
+  if (!location) return FALLBACK_PHOTOS.default;
+  const l = location.toLowerCase();
+  for (const [key, url] of Object.entries(FALLBACK_PHOTOS)) {
+    if (key !== 'default' && l.includes(key)) return url;
+  }
+  return FALLBACK_PHOTOS.default;
+}
+
+export async function fetchUnsplashPhoto(location, tags = []) {
+  if (!UNSPLASH_KEY) return getFallbackPhoto(location);
+  const wildlife = tags
+    .map(t => t.replace(/^[^\s]+\s/, '').toLowerCase())
+    .filter(t => ['lion','elephant','leopard','gorilla','giraffe','zebra','cheetah','rhino'].includes(t))[0];
+  const query = wildlife
+    ? `${location} ${wildlife} safari africa`
+    : `${location} safari africa landscape`;
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+    );
+    if (!res.ok) return getFallbackPhoto(location);
+    const data = await res.json();
+    return data?.urls?.regular || getFallbackPhoto(location);
+  } catch {
+    return getFallbackPhoto(location);
+  }
+}
+
+export async function fetchAllPhotos(days) {
+  return Promise.all(
+    days.map(async day => {
+      const photo = await fetchUnsplashPhoto(day.location, day.tags || []);
+      return { ...day, photo };
+    })
+  );
+}
 
 const WILDLIFE_TAGS = {
   lion:      '🦁 Big cats',
