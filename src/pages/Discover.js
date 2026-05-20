@@ -10,7 +10,7 @@ const COUNTRIES = [
   { label:'Rwanda',       flag:'🇷🇼', grad:'linear-gradient(135deg,#0a1a0a,#1a3a1a)', photo:'https://images.unsplash.com/photo-1612686635542-2244ed9f8ddc?w=300&q=70' },
   { label:'Botswana',     flag:'🇧🇼', grad:'linear-gradient(135deg,#001a12,#1a7a50)', photo:'https://images.unsplash.com/photo-1521651201144-634f700b36ef?w=300&q=70' },
   { label:'South Africa', flag:'🇿🇦', grad:'linear-gradient(135deg,#1a0800,#7a3a00)', photo:'https://images.unsplash.com/photo-1585016495481-91f48d979c5e?w=300&q=70' },
-  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1468071174046-657d9d351a40?w=300&q=70' },
+  { label:'Namibia',      flag:'🇳🇦', grad:'linear-gradient(135deg,#1a0d00,#8B4513)', photo:'https://images.unsplash.com/photo-1489493887464-892be6d1daae?w=300&q=70' },
   { label:'Zimbabwe',     flag:'🇿🇼', grad:'linear-gradient(135deg,#001020,#0a4a2a)', photo:'https://images.unsplash.com/photo-1580200268616-5baffd2a6c12?w=300&q=70' },
   { label:'Zambia',       flag:'🇿🇲', grad:'linear-gradient(135deg,#1a1200,#5a3a00)', photo:'https://images.unsplash.com/photo-1566296412963-4aa9e2b52c40?w=300&q=70' },
 ]
